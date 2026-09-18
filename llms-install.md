@@ -22,7 +22,7 @@ Use these instructions when a user asks you to install or configure MsgMesh in a
 Use the public npm package; cloning this repository is not required:
 
 ```text
-npx -y @msgmesh/mcp-server@0.1.8
+npx -y @msgmesh/mcp-server
 ```
 
 ## Configuration
@@ -34,7 +34,7 @@ Merge this entry into the client's existing MCP configuration without deleting u
   "mcpServers": {
     "msgmesh": {
       "command": "npx",
-      "args": ["-y", "@msgmesh/mcp-server@0.1.8"],
+      "args": ["-y", "@msgmesh/mcp-server"],
       "env": {
         "MQ_API_KEY": "mk_xxxxxxxx"
       }

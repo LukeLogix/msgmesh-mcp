@@ -9,8 +9,7 @@
 ## 這個 repo 是什麼
 
 這是 [`@msgmesh/mcp-server`](https://www.npmjs.com/package/@msgmesh/mcp-server) 的公開安裝與
-目錄落腳點，放置 MCP 目錄與自動安裝器需要的 Dockerfile、安裝說明、機器可讀 metadata
-與品牌素材。
+目錄落腳點，放置 MCP 目錄與自動安裝器需要的 Dockerfile、安裝說明與品牌素材。
 
 MCP server 實作以公開、MIT 授權的 npm 套件發佈，刻意不複製到這裡：可執行內容只有一份
 真相源，本 repo 維持小而可稽核。
@@ -27,7 +26,7 @@ MCP server 實作以公開、MIT 授權的 npm 套件發佈，刻意不複製到
   "mcpServers": {
     "msgmesh": {
       "command": "npx",
-      "args": ["-y", "@msgmesh/mcp-server@0.1.8"],
+      "args": ["-y", "@msgmesh/mcp-server"],
       "env": {
         "MQ_API_KEY": "mk_xxxxxxxx"
       }
@@ -39,11 +38,12 @@ MCP server 實作以公開、MIT 授權的 npm 套件發佈，刻意不複製到
 將 `mk_xxxxxxxx` 換成真實金鑰。設定含機密時不得 commit。官方託管位址已有預設值，只有
 自架時才需要覆寫。
 
-未釘版本的 `npx -y @msgmesh/mcp-server` 會跟隨最新版；上方刻意釘版，讓目錄建置與範例可重現。
+`npx -y @msgmesh/mcp-server` 會跟隨最新版；上游發版流程負責讓 npm 與官方 MCP Registry
+維持同版。
 
 ## Agent 能做什麼
 
-目前提供 29 個 tools：
+目前提供的 tools 可用於：
 
 - 以 `publish_message`、`consume_messages`、`watch_topic` 收發與等待事件；
 - 管理 topic、schema、webhook、function 與 API key；
@@ -66,6 +66,13 @@ docker build -t msgmesh-mcp .
 docker run --rm -i -e MQ_API_KEY msgmesh-mcp
 ```
 
+需要可重現建置時，可以明確傳入已發布版本：
+
+```bash
+version=$(npm view @msgmesh/mcp-server version)
+docker build --build-arg "MSGMESH_MCP_VERSION=$version" -t "msgmesh-mcp:$version" .
+```
+
 stdio MCP 必須保留 stdin。金鑰只在執行時注入，不得寫入 image。Glama 等目錄可直接建置同一份
 Dockerfile，再用其 secret 設定注入 `MQ_API_KEY`。
 
@@ -83,8 +90,9 @@ Dockerfile，再用其 secret 設定注入 `MQ_API_KEY`。
 
 ## 驗證與安全
 
-CI 會對齊 `server.json`、Dockerfile、範例、npm 與官方 MCP Registry 的版本，檢查 400×400
-目錄圖示，並實際建置容器、驗證缺 key 會拒絕啟動，以及 MCP `initialize` 握手可用。
+CI 會動態讀取 npm 最新版、確認官方 MCP Registry 同版，再把該精確版本傳給 Docker 建置；
+同時檢查 400×400 目錄圖示、缺 key 會拒絕啟動，以及 MCP `initialize` 握手可用。因此一般
+套件發版不需要修改本 repo。
 
 - 不要 commit `MQ_API_KEY`，也不要貼進 issue。
 - 只需收發資料時，使用最小能力的 key。

@@ -11,7 +11,7 @@
 This is the public installation and discovery repository for
 [`@msgmesh/mcp-server`](https://www.npmjs.com/package/@msgmesh/mcp-server).
 It contains the files MCP directories and automated installers need: verified setup instructions, a
-Dockerfile, machine-readable server metadata, and reusable brand assets.
+Dockerfile, and reusable brand assets.
 
 The server implementation is distributed as a public MIT-licensed npm package. It is deliberately
 not copied here: one published package remains the executable source of truth, while this repository
@@ -29,7 +29,7 @@ Add this to Claude Desktop, Cursor, or another client that accepts MCP JSON conf
   "mcpServers": {
     "msgmesh": {
       "command": "npx",
-      "args": ["-y", "@msgmesh/mcp-server@0.1.8"],
+      "args": ["-y", "@msgmesh/mcp-server"],
       "env": {
         "MQ_API_KEY": "mk_xxxxxxxx"
       }
@@ -41,12 +41,12 @@ Add this to Claude Desktop, Cursor, or another client that accepts MCP JSON conf
 Replace `mk_xxxxxxxx` with your real key. Do not commit the resulting configuration when it contains
 a secret. The hosted API URLs are built in; self-hosters can override them as documented below.
 
-The unpinned command `npx -y @msgmesh/mcp-server` follows the newest release. The version above is
-pinned so directory builds and examples remain reproducible.
+The command follows the newest published release. MsgMesh keeps npm and the official MCP Registry
+aligned as part of the upstream release workflow.
 
 ## What agents can do
 
-The current server exposes 29 tools for:
+The server exposes tools for:
 
 - publishing, consuming, and waiting for events with `watch_topic`;
 - managing topics, schemas, webhooks, functions, and API keys;
@@ -65,10 +65,17 @@ panel instead of asking the agent to call `create_key`—creating a key also req
 
 ## Run with Docker
 
-Build the pinned image:
+Build an image from the newest published MCP server:
 
 ```bash
 docker build -t msgmesh-mcp .
+```
+
+For a reproducible build, pass an exact published version:
+
+```bash
+version=$(npm view @msgmesh/mcp-server version)
+docker build --build-arg "MSGMESH_MCP_VERSION=$version" -t "msgmesh-mcp:$version" .
 ```
 
 MCP over stdio needs an interactive stdin stream:
@@ -104,12 +111,15 @@ must supply a secret.
 
 CI verifies that:
 
-- `server.json`, the Dockerfile, examples, npm, and the official MCP Registry all agree on the version;
+- npm and the official MCP Registry agree on the latest version;
+- the versionless Dockerfile and examples continue to resolve through the public npm package;
 - the 400×400 PNG directory logo has the required dimensions;
 - the container refuses to start without `MQ_API_KEY`;
 - the container completes an MCP `initialize` handshake without contacting a tenant account.
 
-The check runs on every change and daily to detect a new upstream package release.
+The check runs on every change and daily. CI reads the current npm release, verifies the official
+Registry has the same version, then passes that exact version into the Docker build for a reproducible
+test. This repository therefore does not need a commit for ordinary package releases.
 
 ## Security and support
 

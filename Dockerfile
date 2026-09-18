@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-ARG MSGMESH_MCP_VERSION=0.1.8
+ARG MSGMESH_MCP_VERSION=latest
 
 LABEL org.opencontainers.image.title="MsgMesh MCP Server" \
       org.opencontainers.image.description="MCP server for publishing, consuming, and watching MsgMesh event streams" \

@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 
 const root = new URL('../', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
-const server = JSON.parse(await read('server.json'));
 const example = JSON.parse(await read('examples/mcp-config.example.json'));
 const dockerfile = await read('Dockerfile');
 const readme = await read('README.md');
@@ -11,24 +10,17 @@ const readmeZh = await read('README.zh.md');
 
 const expectedName = 'com.alderflux/msgmesh';
 const expectedPackage = '@msgmesh/mcp-server';
-const pkg = server.packages?.[0];
-
-assert.equal(server.name, expectedName);
-assert.equal(server.title, 'MsgMesh');
-assert.equal(pkg?.identifier, expectedPackage);
-assert.equal(pkg?.version, server.version);
-assert.equal(pkg?.transport?.type, 'stdio');
-assert.equal(pkg?.runtimeHint, 'npx');
-assert.equal(pkg?.registryBaseUrl, 'https://registry.npmjs.org');
 
 const args = example.mcpServers?.msgmesh?.args;
-assert.deepEqual(args, ['-y', `${expectedPackage}@${server.version}`]);
+assert.deepEqual(args, ['-y', expectedPackage]);
 assert.equal(example.mcpServers.msgmesh.command, 'npx');
 assert.equal(example.mcpServers.msgmesh.env.MQ_API_KEY, 'mk_xxxxxxxx');
 
-assert.match(dockerfile, new RegExp(`ARG MSGMESH_MCP_VERSION=${server.version.replaceAll('.', '\\.')}`));
-assert.match(readme, new RegExp(`${expectedPackage.replace('/', '\\/')}@${server.version.replaceAll('.', '\\.')}`));
-assert.match(readmeZh, new RegExp(`${expectedPackage.replace('/', '\\/')}@${server.version.replaceAll('.', '\\.')}`));
+assert.match(dockerfile, /ARG MSGMESH_MCP_VERSION=latest/);
+assert.match(dockerfile, /@msgmesh\/mcp-server@\$\{MSGMESH_MCP_VERSION\}/);
+assert.match(readme, /"@msgmesh\/mcp-server"/);
+assert.match(readmeZh, /"@msgmesh\/mcp-server"/);
+await assert.rejects(access(new URL('server.json', root)), /ENOENT/, 'server.json must remain upstream-only');
 
 const logo = await readFile(new URL('assets/logo.png', root));
 assert.equal(logo.toString('hex', 0, 8), '89504e470d0a1a0a', 'assets/logo.png must be a PNG');
@@ -38,8 +30,7 @@ assert.equal(logo.readUInt32BE(20), 400, 'assets/logo.png must be 400 px high');
 const npmResponse = await fetch('https://registry.npmjs.org/@msgmesh%2fmcp-server/latest');
 assert.equal(npmResponse.status, 200, `npm registry returned ${npmResponse.status}`);
 const npmPackage = await npmResponse.json();
-assert.equal(npmPackage.version, server.version, 'server.json is behind the npm latest version');
-assert.equal(npmPackage.mcpName, expectedName, 'npm mcpName differs from server.json');
+assert.equal(npmPackage.mcpName, expectedName, 'npm mcpName differs from the official namespace');
 assert.equal(npmPackage.license, 'MIT');
 
 const registryUrl = 'https://registry.modelcontextprotocol.io/v0/servers?search=msgmesh&version=latest';
@@ -50,8 +41,13 @@ const official = registry.servers
   ?.map(entry => entry.server)
   .find(entry => entry.name === expectedName);
 assert.ok(official, 'MsgMesh is missing from the official MCP Registry');
-assert.equal(official.version, server.version, 'official MCP Registry version differs from server.json');
+assert.equal(official.version, npmPackage.version, 'official MCP Registry is behind npm latest');
 assert.equal(official.packages?.[0]?.identifier, expectedPackage);
-assert.equal(official.packages?.[0]?.version, server.version);
+assert.equal(official.packages?.[0]?.version, npmPackage.version);
+assert.equal(official.packages?.[0]?.transport?.type, 'stdio');
 
-console.log(`✓ metadata, npm, official registry, examples, and logo agree on ${expectedPackage}@${server.version}`);
+if (process.argv.includes('--print-version')) {
+  console.log(npmPackage.version);
+} else {
+  console.log(`✓ npm, official registry, versionless entry points, and logo agree on ${expectedPackage}@${npmPackage.version}`);
+}

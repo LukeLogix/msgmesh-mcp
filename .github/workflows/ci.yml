@@ -24,7 +24,7 @@ jobs:
         run: node scripts/check.mjs
       - name: Build the directory image
         run: |
-          version=$(node -p "require('./server.json').version")
+          version=$(node scripts/check.mjs --print-version)
           docker build --build-arg "MSGMESH_MCP_VERSION=$version" -t msgmesh-mcp:test .
       - name: Smoke-test MCP initialization
         run: node scripts/smoke-container.mjs msgmesh-mcp:test
