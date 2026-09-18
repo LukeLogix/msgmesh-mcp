@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Check public metadata and upstream versions
+        run: node scripts/check.mjs
+      - name: Build the directory image
+        run: |
+          version=$(node -p "require('./server.json').version")
+          docker build --build-arg "MSGMESH_MCP_VERSION=$version" -t msgmesh-mcp:test .
+      - name: Smoke-test MCP initialization
+        run: node scripts/smoke-container.mjs msgmesh-mcp:test

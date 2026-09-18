@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-labelledby="title desc">
+  <title id="title">MsgMesh</title>
+  <desc id="desc">A dark letter M on the MsgMesh blue rounded square.</desc>
+  <rect width="400" height="400" rx="88" fill="#4d9dfa"/>
+  <text x="200" y="278" text-anchor="middle" fill="#04121f" font-family="JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="224" font-weight="700">M</text>
+</svg>

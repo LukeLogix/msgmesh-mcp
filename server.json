@@ -1,0 +1,61 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.alderflux/msgmesh",
+  "title": "MsgMesh",
+  "description": "Event bus for AI agents: watch_topic long-polls live events; manage topics, schemas, webhooks.",
+  "version": "0.1.8",
+  "websiteUrl": "https://msgmesh.alderflux.com",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@msgmesh/mcp-server",
+      "version": "0.1.8",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "MQ_API_KEY",
+          "description": "MsgMesh API key. Sign one (admin scope recommended) at https://msgmesh-panel.alderflux.com Keys page.",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string",
+          "placeholder": "mk_xxxxxxxx"
+        },
+        {
+          "name": "MQ_CONTROL_PLANE_URL",
+          "description": "Control-plane base URL. Override only when self-hosting.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string",
+          "default": "https://msgmesh-api.alderflux.com"
+        },
+        {
+          "name": "MQ_GATEWAY_URL",
+          "description": "Gateway (publish/consume) base URL. Override only when self-hosting.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string",
+          "default": "https://msgmesh-api.alderflux.com"
+        },
+        {
+          "name": "MQ_REALTIME_URL",
+          "description": "Realtime (presence) base URL. Override only when self-hosting.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string",
+          "default": "https://msgmesh-api.alderflux.com"
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "tool": "release-mcp.yml",
+      "toolCount": 29,
+      "docs": "https://msgmesh.alderflux.com"
+    }
+  }
+}

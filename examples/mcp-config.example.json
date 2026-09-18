@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "msgmesh": {
+      "command": "npx",
+      "args": ["-y", "@msgmesh/mcp-server@0.1.8"],
+      "env": {
+        "MQ_API_KEY": "mk_xxxxxxxx"
+      }
+    }
+  }
+}
