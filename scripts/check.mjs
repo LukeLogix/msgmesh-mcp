@@ -22,6 +22,11 @@ assert.match(readme, /"@msgmesh\/mcp-server"/);
 assert.match(readmeZh, /"@msgmesh\/mcp-server"/);
 await assert.rejects(access(new URL('server.json', root)), /ENOENT/, 'server.json must remain upstream-only');
 
+const glama = JSON.parse(await read('glama.json'));
+assert.equal(glama.$schema, 'https://glama.ai/mcp/schemas/server.json');
+assert.ok(glama.maintainers?.includes('LukeLogix'), 'glama.json must keep a maintainer who can edit the listing');
+assert.deepEqual(Object.keys(glama).sort(), ['$schema', 'maintainers'], 'glama.json stays maintainer-only; no second version source');
+
 const logo = await readFile(new URL('assets/logo.png', root));
 assert.equal(logo.toString('hex', 0, 8), '89504e470d0a1a0a', 'assets/logo.png must be a PNG');
 assert.equal(logo.readUInt32BE(16), 400, 'assets/logo.png must be 400 px wide');
