@@ -22,10 +22,10 @@ jobs:
           node-version: 22
       # Exported source (present from the first release that exports it).
       - name: Verify the exported source matches its manifest
-        if: hashFiles('export-manifest.json') != ''
+        if: hashFiles('export-manifest.json', 'package.json', 'src/**', 'test/**') != ''
         run: node scripts/verify-export.mjs
       - name: Build and test the exported source
-        if: hashFiles('export-manifest.json') != ''
+        if: hashFiles('export-manifest.json', 'package.json', 'src/**', 'test/**') != ''
         run: |
           npm ci
           npm run build
