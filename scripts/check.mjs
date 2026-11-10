@@ -20,7 +20,6 @@ assert.match(dockerfile, /ARG MSGMESH_MCP_VERSION=latest/);
 assert.match(dockerfile, /@msgmesh\/mcp-server@\$\{MSGMESH_MCP_VERSION\}/);
 assert.match(readme, /"@msgmesh\/mcp-server"/);
 assert.match(readmeZh, /"@msgmesh\/mcp-server"/);
-await assert.rejects(access(new URL('server.json', root)), /ENOENT/, 'server.json must remain upstream-only');
 
 const glama = JSON.parse(await read('glama.json'));
 assert.equal(glama.$schema, 'https://glama.ai/mcp/schemas/server.json');
@@ -50,6 +49,20 @@ assert.equal(official.version, npmPackage.version, 'official MCP Registry is beh
 assert.equal(official.packages?.[0]?.identifier, expectedPackage);
 assert.equal(official.packages?.[0]?.version, npmPackage.version);
 assert.equal(official.packages?.[0]?.transport?.type, 'stdio');
+
+// Exported source (present from the first release that exports it). Either file
+// being present means a snapshot is expected, so a deleted manifest fails here.
+const exists = path => access(new URL(path, root)).then(() => true, () => false);
+if ((await exists('export-manifest.json')) || (await exists('package.json'))) {
+  assert.ok(await exists('export-manifest.json'), 'export-manifest.json is missing but exported source files are present');
+  const pkg = JSON.parse(await read('package.json'));
+  const serverJson = JSON.parse(await read('server.json'));
+  assert.equal(pkg.version, npmPackage.version, `exported source version ${pkg.version} differs from npm latest ${npmPackage.version}`);
+  assert.equal(serverJson.version, pkg.version);
+  assert.equal(serverJson.packages?.[0]?.version, pkg.version);
+  assert.equal(pkg.mcpName, expectedName, 'package.json mcpName differs from the official namespace');
+  assert.equal(serverJson.name, pkg.mcpName);
+}
 
 if (process.argv.includes('--print-version')) {
   console.log(npmPackage.version);
