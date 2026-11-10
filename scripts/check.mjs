@@ -20,7 +20,6 @@ assert.match(dockerfile, /ARG MSGMESH_MCP_VERSION=latest/);
 assert.match(dockerfile, /@msgmesh\/mcp-server@\$\{MSGMESH_MCP_VERSION\}/);
 assert.match(readme, /"@msgmesh\/mcp-server"/);
 assert.match(readmeZh, /"@msgmesh\/mcp-server"/);
-await assert.rejects(access(new URL('server.json', root)), /ENOENT/, 'server.json must remain upstream-only');
 
 const glama = JSON.parse(await read('glama.json'));
 assert.equal(glama.$schema, 'https://glama.ai/mcp/schemas/server.json');
@@ -50,6 +49,17 @@ assert.equal(official.version, npmPackage.version, 'official MCP Registry is beh
 assert.equal(official.packages?.[0]?.identifier, expectedPackage);
 assert.equal(official.packages?.[0]?.version, npmPackage.version);
 assert.equal(official.packages?.[0]?.transport?.type, 'stdio');
+
+// Exported source (present from the first release that exports it).
+const manifestPresent = await access(new URL('export-manifest.json', root)).then(() => true, () => false);
+if (manifestPresent) {
+  const pkg = JSON.parse(await read('package.json'));
+  const serverJson = JSON.parse(await read('server.json'));
+  assert.equal(pkg.version, npmPackage.version, 'exported source is behind npm latest (export job did not land)');
+  assert.equal(serverJson.version, pkg.version);
+  assert.equal(serverJson.packages?.[0]?.version, pkg.version);
+  assert.equal(serverJson.name, pkg.mcpName);
+}
 
 if (process.argv.includes('--print-version')) {
   console.log(npmPackage.version);
